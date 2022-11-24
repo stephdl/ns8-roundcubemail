@@ -21,11 +21,11 @@ container=$(buildah from scratch)
 # Reuse existing nodebuilder-roundcubemail container, to speed up builds
 if ! buildah containers --format "{{.ContainerName}}" | grep -q nodebuilder-roundcubemail; then
     echo "Pulling NodeJS runtime..."
-    buildah from --name nodebuilder-roundcubemail -v "${PWD}:/usr/src:Z" docker.io/library/node:lts
+    buildah from --name nodebuilder-roundcubemail -v "${PWD}:/usr/src:Z" docker.io/library/node:18-slim
 fi
 
 echo "Build static UI files with node..."
-buildah run nodebuilder-roundcubemail sh -c "cd /usr/src/ui && yarn install && yarn build"
+buildah run --env="NODE_OPTIONS=--openssl-legacy-provider" nodebuilder-roundcubemail sh -c "cd /usr/src/ui && yarn install && yarn build"
 
 # Add imageroot directory to the container image
 buildah add "${container}" imageroot /imageroot
